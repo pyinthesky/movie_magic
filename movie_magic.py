@@ -99,7 +99,7 @@ class DirectoryValidation(argparse.Action):
             if os.path.exists(val) and os.path.isdir(val):
                 MovieMagic.DIRECTORY_LIST.append(val)
             else:
-                raise ValueError("%s is not a valid directory", val)
+                raise ValueError("%s is not a valid directory" % val)
 
 
 class OutputValidation(argparse.Action):
@@ -107,7 +107,7 @@ class OutputValidation(argparse.Action):
         if os.path.exists(values) and os.path.isdir(values):
             MovieMagic.OUTPUT_FILE_DIR = values
         else:
-            raise ValueError("%s is not a valid directory", values)
+            raise ValueError("%s is not a valid directory" % values)
 
 
 class FileValidation(argparse.Action):
@@ -119,15 +119,15 @@ class FileValidation(argparse.Action):
                         _ = f.read()
                 except IOError as x:
                     if x.errno == errno.ENOENT:
-                        raise IOError("%s - does not exist", val)
+                        raise IOError("%s - does not exist" % val)
                     elif x.errno == errno.EACCES:
-                        raise IOError("%s - cannot be read", val)
+                        raise IOError("%s - cannot be read" % val)
                     else:
-                        raise IOError("%s - some other error", val)
+                        raise IOError("%s - some other error" % val)
                 else:
                     MovieMagic.DIRECTORY_LIST.append(val)
             else:
-                raise ValueError("%s is not a valid directory", val)
+                raise ValueError("%s - is not a valid path" % val)
 
 class SetVerbose(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -250,21 +250,23 @@ class MovieMagic:
         MovieMagic.parse_directories()
         MovieMagic.parse_files()
         MovieMagic.create_submission_url_list()
-        MovieMagic.submit_urls()
-        MovieMagic.store_results_raw()
+        #MovieMagic.submit_urls()
+        #MovieMagic.store_results_raw()
         MovieMagic.store_results()
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--directory",    type=str,   action=DirectoryValidation, nargs="+")
-    parser.add_argument("-f", "--file",         type=str,   action=FileValidation,      nargs="+")
+    parser.add_argument("-d", "--directory",    type=str,   action=DirectoryValidation, nargs="*")
+    parser.add_argument("-f", "--file",         type=str,   action=FileValidation,      nargs="*")
     parser.add_argument("-s", "--file_split",   type=str,   action=FileSplit,           default=MovieMagic.FILE_SPLIT, help="regex splitter for files")
     parser.add_argument("-o", "--output_dir",   type=str,   action=OutputValidation)
     parser.add_argument("-v", "--verbose",                  action=SetVerbose,          nargs=0)
-    parser.parse_args()
-    MovieMagic.run()
-
+    try:
+        parser.parse_args()
+        MovieMagic.run()
+    except ValueError as e:
+        print("ERROR - Failed to parse arguments:", e)
 
 if __name__ == "__main__":
     main()
